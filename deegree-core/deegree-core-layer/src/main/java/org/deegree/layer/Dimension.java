@@ -163,7 +163,7 @@ public class Dimension<T> {
     }
 
     /**
-     * @return the extent as comma separated list as in the specs
+     * @return the extent as comma-separated list as in the specs
      */
     public String getExtentAsString() {
         return formatDimensionValueList( getExtent(), name.equals( "time" ) );
