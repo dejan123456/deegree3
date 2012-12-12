@@ -87,9 +87,9 @@ public class RasterCache {
     /** A key which can be given to the JVM to define the amount of memory used for caching. */
     public static final String DEF_RASTER_CACHE_DISK_SIZE = "deegree.raster.cache.disksize";
 
-    private static long maxCacheMem;
+    private long maxCacheMem;
 
-    private static long maxCacheDisk;
+    private long maxCacheDisk;
 
     /**
      * Standard name for a deegree cache file.
@@ -118,42 +118,49 @@ public class RasterCache {
      * (Re-)Evaluate the {@link RasterCache#DEF_RASTER_CACHE_DISK_SIZE} and {@link #DEF_RASTER_CACHE_MEM_SIZE}
      * properties in the JVM.
      */
-    private static void evaluateProperties() {
+    private void evaluateProperties() {
         synchronized ( MEM_LOCK ) {
-            String cacheSize = System.getProperty( DEF_RASTER_CACHE_MEM_SIZE );
-            long mm = StringUtils.parseByteSize( cacheSize );
-            if ( mm == 0 ) {
-                if ( StringUtils.isSet( cacheSize ) ) {
-                    LOG.warn(
-                              "Ignoring supplied property: {} because it could not be parsed. Using 0.5 of the total memory for raster caching.",
-                              DEF_RASTER_CACHE_MEM_SIZE );
-                }
-                mm = Runtime.getRuntime().maxMemory();
-                if ( mm == Long.MAX_VALUE ) {
-                    mm = Math.round( Runtime.getRuntime().totalMemory() * 0.5 );
-                } else {
-                    mm *= 0.5;
-                }
-            } else {
-                LOG.info( "Using {} of memory for raster caching (because it was set with the {} property).",
-                          ( mm / ( 1024 * 1024 ) ) + "Mb", DEF_RASTER_CACHE_MEM_SIZE );
-            }
-            maxCacheMem = mm;
-            String t = System.getProperty( DEF_RASTER_CACHE_DISK_SIZE );
-            mm = StringUtils.parseByteSize( t );
-            if ( mm == 0 ) {
-                if ( StringUtils.isSet( t ) ) {
-                    LOG.warn(
-                              "Ignoring supplied property: {} because it could not be parsed. Using 20G of disk space for raster caching.",
-                              DEF_RASTER_CACHE_MEM_SIZE );
-                }
-                mm = 20 * ( 1024l * 1024 * 1024 );
-            } else {
-                LOG.info( "Using {} of disk space for raster caching (because it was set with the {} property).",
-                          ( mm / ( 1024 * 1024 ) ) + "Mb", DEF_RASTER_CACHE_DISK_SIZE );
-            }
-            maxCacheDisk = mm;
+
+            setMaxMem();
+            setMaxDisk();
         }
+    }
+
+    private void setMaxDisk() {
+        String t = System.getProperty( DEF_RASTER_CACHE_DISK_SIZE );
+        long mm = StringUtils.parseByteSize( t );
+        if ( mm == 0 ) {
+            if ( StringUtils.isSet( t ) ) {
+                LOG.warn( "Ignoring supplied property: {} because it could not be parsed. Using 20G of disk space for raster caching.",
+                          DEF_RASTER_CACHE_MEM_SIZE );
+            }
+            mm = 20 * ( 1024l * 1024 * 1024 );
+        } else {
+            LOG.info( "Using {} of disk space for raster caching (because it was set with the {} property).",
+                      ( mm / ( 1024 * 1024 ) ) + "Mb", DEF_RASTER_CACHE_DISK_SIZE );
+        }
+        maxCacheDisk = mm;
+    }
+
+    private void setMaxMem() {
+        String cacheSize = System.getProperty( DEF_RASTER_CACHE_MEM_SIZE );
+        long mm = StringUtils.parseByteSize( cacheSize );
+        if ( mm == 0 ) {
+            if ( StringUtils.isSet( cacheSize ) ) {
+                LOG.warn( "Ignoring supplied property: {} because it could not be parsed. Using 0.5 of the total memory for raster caching.",
+                          DEF_RASTER_CACHE_MEM_SIZE );
+            }
+            mm = Runtime.getRuntime().maxMemory();
+            if ( mm == Long.MAX_VALUE ) {
+                mm = Math.round( Runtime.getRuntime().totalMemory() * 0.5 );
+            } else {
+                mm *= 0.5;
+            }
+        } else {
+            LOG.info( "Using {} of memory for raster caching (because it was set with the {} property).",
+                      ( mm / ( 1024 * 1024 ) ) + "Mb", DEF_RASTER_CACHE_MEM_SIZE );
+        }
+        maxCacheMem = mm;
     }
 
     // private final static TreeSet<CacheRasterReader> cache = new TreeSet<CacheRasterReader>( new CacheComparator() );
@@ -163,16 +170,13 @@ public class RasterCache {
     }
 
     /**
-     * Clear the cache of all readers (and optionally delete all cache files) and reevaluate the disk and memory size (
-     * {@link #DEF_RASTER_CACHE_DISK_SIZE}, {@link #DEF_RASTER_CACHE_MEM_SIZE}) properties from the system. This method
-     * is to be called with care.
+     * Clear the cache of all readers (and optionally delete all cache files). This method is to be called with care.
      * 
      * @param deleteCachedFile
      *            true if all cached files should be deleted.
      */
     public static void reset( boolean deleteCachedFile ) {
         clear( deleteCachedFile );
-        evaluateProperties();
     }
 
     /**
@@ -192,15 +196,13 @@ public class RasterCache {
                               directory.getAbsolutePath() );
                     boolean creation = directory.mkdir();
                     if ( !creation ) {
-                        LOG.warn(
-                                  "Creation of cache directory: {} was not succesfull using default cache directory instead: {}.",
+                        LOG.warn( "Creation of cache directory: {} was not succesfull using default cache directory instead: {}.",
                                   directory.getAbsolutePath(), DEFAULT_CACHE_DIR.getAbsoluteFile() );
                     } else {
                         cacheDir = directory;
                     }
                 } else {
-                    LOG.warn(
-                              "Given cache directory: {} does not exist and creation was not requested, using default cache dir: {}",
+                    LOG.warn( "Given cache directory: {} does not exist and creation was not requested, using default cache dir: {}",
                               directory.getAbsolutePath(), DEFAULT_CACHE_DIR.getAbsolutePath() );
                 }
             } else {
