@@ -73,6 +73,7 @@ import org.deegree.coverage.raster.io.jaxb.AbstractRasterType.RasterDirectory;
 import org.deegree.coverage.raster.io.jaxb.AbstractRasterType.RasterFile;
 import org.deegree.coverage.raster.io.jaxb.MultiResolutionRasterConfig;
 import org.deegree.coverage.raster.io.jaxb.MultiResolutionRasterConfig.Resolution;
+import org.deegree.coverage.raster.io.jaxb.RasterCacheType;
 import org.deegree.coverage.raster.io.jaxb.RasterConfig;
 import org.deegree.cs.coordinatesystems.ICRS;
 import org.deegree.cs.persistence.CRSManager;
@@ -190,6 +191,7 @@ public class RasterBuilder implements CoverageBuilder {
                 crs = parentCrs;
             }
             RasterIOOptions options = getOptions( mrrConfig, parentCrs );
+            addRasterCacheOptions( mrrConfig.getRasterCache(), options );
             MultiResolutionRaster mrr = new MultiResolutionRaster();
             mrr.setCoordinateSystem( crs );
             for ( Resolution resolution : mrrConfig.getResolution() ) {
@@ -201,6 +203,13 @@ public class RasterBuilder implements CoverageBuilder {
             return mrr;
         }
         throw new NullPointerException( "The configured multi resolution raster may not be null." );
+    }
+
+    private void addRasterCacheOptions( RasterCacheType rasterCacheType, RasterIOOptions options ) {
+        if ( rasterCacheType != null ) {
+            options.add( "memSize" , rasterCacheType.getMaxMemSize().toString());
+            options.add( "diskSize" , rasterCacheType.getMaxDiskSize().toString());
+        }
     }
 
     private RasterIOOptions getOptions( MultiResolutionRasterConfig config, ICRS parentCrs ) {
@@ -578,7 +587,10 @@ public class RasterBuilder implements CoverageBuilder {
                 return fromJAXB( (MultiResolutionRasterConfig) config, resolver, null );
             }
             if ( config instanceof RasterConfig ) {
-                return fromJAXB( (RasterConfig) config, resolver, null, null );
+                RasterIOOptions options = new RasterIOOptions();
+                RasterConfig rsConfig = (RasterConfig) config;
+                addRasterCacheOptions( rsConfig.getRasterCache(), options );
+                return fromJAXB( rsConfig, resolver, options, null );
             }
             LOG.warn( "An unknown object '{}' came out of JAXB parsing. This is probably a bug.", config.getClass() );
             return null;
