@@ -13,7 +13,7 @@
     <developerConnection>scm:git:git@github.com:lat-lon/deegree3.git</developerConnection>
     <url>https://github.com/lat-lon/deegree3.git</url>
   </scm>
-
+  
   <repositories>
     <repository>
       <id>deegree-repo</id>
@@ -26,6 +26,7 @@
       </snapshots>
     </repository>
   </repositories>
+
 
   <distributionManagement>
     <repository>
