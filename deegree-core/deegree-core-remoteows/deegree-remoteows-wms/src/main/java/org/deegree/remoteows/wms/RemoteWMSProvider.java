@@ -98,7 +98,7 @@ public class RemoteWMSProvider implements RemoteOWSProvider {
                 user = basic.getUsername();
                 pass = basic.getPassword();
             }
-            client = new WMSClient( capas, connTimeout, reqTimeout, user, pass );
+            client = new WMSClient( capas, connTimeout, reqTimeout, user, pass, true );
 
             return new org.deegree.remoteows.wms.RemoteWMS( client );
         } catch ( Exception e ) {

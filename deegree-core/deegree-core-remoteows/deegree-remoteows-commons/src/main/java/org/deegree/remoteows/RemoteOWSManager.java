@@ -35,6 +35,8 @@
  ----------------------------------------------------------------------------*/
 package org.deegree.remoteows;
 
+import javax.xml.stream.XMLStreamReader;
+
 import org.deegree.commons.config.AbstractResourceManager;
 import org.deegree.commons.config.DeegreeWorkspace;
 import org.deegree.commons.config.DefaultResourceManagerMetadata;

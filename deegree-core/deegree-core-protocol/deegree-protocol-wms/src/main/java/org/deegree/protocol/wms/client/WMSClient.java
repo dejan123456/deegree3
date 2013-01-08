@@ -183,10 +183,26 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
         super( url, new OwsHttpClientImpl( connectionTimeout * 1000, requestTimeout * 1000, user, pass ) );
         this.connectionTimeout = connectionTimeout;
         this.requestTimeout = requestTimeout;
-        capaDoc.parseWMSSpecificCapabilities( getOperations() );
+        getCapaDoc().parseWMSSpecificCapabilities( getOperations() );
         checkCapabilities();
         this.httpBasicUser = user;
         this.httpBasicPass = pass;
+    }
+
+    public WMSClient( URL url, int connectionTimeout, int requestTimeout, String user, String pass, boolean lazy )
+                            throws IOException, OWSExceptionReport, XMLStreamException {
+        super( url, new OwsHttpClientImpl( connectionTimeout * 1000, requestTimeout * 1000, user, pass ), lazy );
+        this.connectionTimeout = connectionTimeout;
+        this.requestTimeout = requestTimeout;
+        
+        this.httpBasicUser = user;
+        this.httpBasicPass = pass;
+    }
+    
+    @Override
+    protected void initSpecificCapabilities() {
+        getCapaDoc().parseWMSSpecificCapabilities( getOperations() );
+        checkCapabilities();
     }
 
     /**
@@ -212,7 +228,7 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      */
     public WMSClient( URL url ) throws OWSExceptionReport, XMLStreamException, IOException {
         super( url, null );
-        capaDoc.parseWMSSpecificCapabilities( getOperations() );
+        getCapaDoc().parseWMSSpecificCapabilities( getOperations() );
         checkCapabilities();
     }
 
@@ -224,7 +240,7 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      */
     public WMSClient( XMLAdapter capabilities ) throws IOException, OWSExceptionReport, XMLStreamException {
         super( capabilities, null );
-        capaDoc.parseWMSSpecificCapabilities( getOperations() );
+        getCapaDoc().parseWMSSpecificCapabilities( getOperations() );
         checkCapabilities();
     }
 
@@ -903,7 +919,7 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
 
         String url = getAddress( GetMap, true );
         if ( url == null ) {
-            LOG.warn( get( "WMSCLIENT.SERVER_NO_GETMAP_URL" ), "Capabilities: ", capaDoc );
+            LOG.warn( get( "WMSCLIENT.SERVER_NO_GETMAP_URL" ), "Capabilities: ", getCapaDoc() );
             return null;
         }
         url = repairGetUrl( url );
@@ -958,43 +974,43 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
     }
 
     public boolean isOperationSupported( WMSRequestType request ) {
-        return capaDoc.isOperationSupported( request );
+        return getCapaDoc().isOperationSupported( request );
     }
 
     public LinkedList<String> getFormats( WMSRequestType request ) {
-        return capaDoc.getFormats( request );
+        return getCapaDoc().getFormats( request );
     }
 
     public String getAddress( WMSRequestType request, boolean get ) {
-        return capaDoc.getAddress( request, get );
+        return getCapaDoc().getAddress( request, get );
     }
 
     public boolean hasLayer( String name ) {
-        return capaDoc.hasLayer( name );
+        return getCapaDoc().hasLayer( name );
     }
 
     public LinkedList<String> getCoordinateSystems( String name ) {
-        return capaDoc.getCoordinateSystems( name );
+        return getCapaDoc().getCoordinateSystems( name );
     }
 
     public Envelope getLatLonBoundingBox( String layer ) {
-        return capaDoc.getLatLonBoundingBox( layer );
+        return getCapaDoc().getLatLonBoundingBox( layer );
     }
 
     public Envelope getLatLonBoundingBox( List<String> layers ) {
-        return capaDoc.getLatLonBoundingBox( layers );
+        return getCapaDoc().getLatLonBoundingBox( layers );
     }
 
     public Envelope getBoundingBox( String srs, String layer ) {
-        return capaDoc.getBoundingBox( srs, layer );
+        return getCapaDoc().getBoundingBox( srs, layer );
     }
 
     public List<String> getNamedLayers() {
-        return capaDoc.getNamedLayers();
+        return getCapaDoc().getNamedLayers();
     }
 
     public Tree<LayerMetadata> getLayerTree() {
-        return capaDoc.getLayerTree();
+        return getCapaDoc().getLayerTree();
     }
 
     /**
@@ -1008,7 +1024,16 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      *         capabilities exists
      */
     public OMElement getExtendedCapabilities( String prefix, String localName, String namespaceUri ) {
-        return capaDoc.getExtendedCapabilities( prefix, localName, namespaceUri );
+        return getCapaDoc().getExtendedCapabilities( prefix, localName, namespaceUri );
+    }
+
+    private WMSCapabilitiesAdapter getCapaDoc() {
+        try {
+            initCapabilities();
+        } catch ( Exception e ) {
+            throw new RuntimeException( "Capabilities could not be parsed" );
+        }
+        return capaDoc;
     }
 
     public int getConnectTimeout() {

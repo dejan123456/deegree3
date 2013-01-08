@@ -83,6 +83,10 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
     private ServiceProvider provider;
 
     private OperationsMetadata metadata;
+    
+    private boolean isInitialsed = false;
+
+    private URL capaUrl;
 
     /**
      * Creates a new {@link AbstractOWSClient} instance from the given capabilities document.
@@ -154,10 +158,55 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
             capaBaseUrl = capaUrl;
         }
     }
+    
+    /**
+     * Creates a new {@link AbstractOWSClient} instance from the given capabilities URL.
+     * 
+     * @param capaUrl
+     *            URL of a OWS capabilities document, usually this is a <code>GetCapabilities</code> request to the
+     *            service, must not be <code>null</code>
+     * @param httpClient
+     *            client for customizing HTTP communication, can be <code>null</code>
+     * @throws OWSExceptionReport
+     *             if the server replied with a service exception report
+     * @throws XMLStreamException
+     * @throws IOException
+     *             if a communication/network problem occured
+     */
+    protected AbstractOWSClient( URL capaUrl, OwsHttpClient httpClient , boolean lazy) throws IOException, OWSExceptionReport,
+                            XMLStreamException {
+        this.capaUrl = capaUrl;
+        if ( capaUrl == null ) {
+            throw new NullPointerException( "Capabilities URL must not be null." );
+        }
+        if ( httpClient != null ) {
+            this.httpClient = httpClient;
+        } else {
+            this.httpClient = new OwsHttpClientImpl();
+        }
+
+        String baseUrl = capaUrl.toString();
+        int pos = baseUrl.indexOf( '?' );
+        if ( pos != -1 ) {
+            baseUrl = baseUrl.substring( 0, pos );
+            try {
+                capaBaseUrl = new URL( baseUrl );
+            } catch ( Throwable t ) {
+                LOG.warn( t.getMessage() );
+            }
+        } else {
+            capaBaseUrl = capaUrl;
+        }
+    }
+    
+    protected void initCapabilities()
+                            throws IOException, OWSExceptionReport, XMLStreamException {
+        initCapabilities(capaBaseUrl);
+    }
 
     private void initCapabilities( URL capaUrl )
                             throws IOException, OWSExceptionReport, XMLStreamException {
-
+if(!isInitialsed){
         if ( shouldUseGet( capaUrl ) ) {
             OwsHttpResponse response = httpClient.doGet( capaUrl, null, null );
             response.assertHttpStatus200();
@@ -174,6 +223,13 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
             XMLAdapter xmlAdapter = new XMLAdapter( capaUrl );
             initCapabilities( xmlAdapter );
         }
+        initSpecificCapabilities();
+        isInitialsed = true;
+}
+    }
+    
+    protected void initSpecificCapabilities(){
+        
     }
 
     private boolean shouldUseGet( URL capaUrl ) {
