@@ -21,6 +21,7 @@
             <attribute name="location" type="string" use="required" />
           </complexType>
         </element>
+        <element name="CachedCapabilitiesDocumentLocation" type="string" minOccurs="0" maxOccurs="1" />
         <!-- timeouts are in seconds -->
         <element name="ConnectionTimeout" type="int" minOccurs="0" default="5" />
         <element name="RequestTimeout" type="int" minOccurs="0" default="60" />

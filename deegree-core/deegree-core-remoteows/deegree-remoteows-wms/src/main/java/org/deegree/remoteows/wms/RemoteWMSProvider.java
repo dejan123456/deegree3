@@ -38,6 +38,7 @@ package org.deegree.remoteows.wms;
 import static org.deegree.commons.xml.jaxb.JAXBUtils.unmarshall;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.deegree.commons.config.DeegreeWorkspace;
@@ -83,7 +84,6 @@ public class RemoteWMSProvider implements RemoteOWSProvider {
                                                                              config, workspace );
             XMLAdapter resolver = new XMLAdapter();
             resolver.setSystemId( config.toString() );
-            URL capas = resolver.resolve( cfg.getCapabilitiesDocumentLocation().getLocation() );
 
             int connTimeout = cfg.getConnectionTimeout() == null ? 5 : cfg.getConnectionTimeout();
             int reqTimeout = cfg.getRequestTimeout() == null ? 60 : cfg.getRequestTimeout();
@@ -98,6 +98,10 @@ public class RemoteWMSProvider implements RemoteOWSProvider {
                 user = basic.getUsername();
                 pass = basic.getPassword();
             }
+
+            String cachedCapabilitiesDocumentLocation = cfg.getCachedCapabilitiesDocumentLocation();
+            URL capas = getCapabilitiesUrl( cfg, resolver, cachedCapabilitiesDocumentLocation );
+
             client = new WMSClient( capas, connTimeout, reqTimeout, user, pass, true );
 
             return new org.deegree.remoteows.wms.RemoteWMS( client );
@@ -107,6 +111,18 @@ public class RemoteWMSProvider implements RemoteOWSProvider {
             LOG.trace( "Stack trace:", e );
         }
         return null;
+    }
+
+    private URL getCapabilitiesUrl( org.deegree.remoteows.wms_new.jaxb.RemoteWMS cfg, XMLAdapter resolver,
+                                    String cachedCapabilitiesDocumentLocation )
+                            throws MalformedURLException {
+        URL capas;
+        if ( cachedCapabilitiesDocumentLocation != null ) {
+            capas = resolver.resolve( cachedCapabilitiesDocumentLocation );
+        } else {
+            capas = resolver.resolve( cfg.getCapabilitiesDocumentLocation().getLocation() );
+        }
+        return capas;
     }
 
     @Override
