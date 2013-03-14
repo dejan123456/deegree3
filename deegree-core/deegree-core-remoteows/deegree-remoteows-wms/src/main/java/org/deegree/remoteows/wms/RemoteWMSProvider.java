@@ -122,6 +122,7 @@ public class RemoteWMSProvider implements RemoteOWSProvider {
         } else {
             capas = resolver.resolve( cfg.getCapabilitiesDocumentLocation().getLocation() );
         }
+        LOG.trace( "Use capabilities from {}", capas );
         return capas;
     }
 
