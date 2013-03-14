@@ -48,6 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.stream.XMLStreamException;
+
 import org.deegree.commons.utils.Pair;
 import org.deegree.commons.utils.StringUtils;
 import org.deegree.commons.xml.XMLAdapter;
@@ -69,9 +71,10 @@ import org.deegree.cs.persistence.CRSManager;
 import org.deegree.geometry.Envelope;
 import org.deegree.geometry.Geometry;
 import org.deegree.geometry.GeometryTransformer;
+import org.deegree.protocol.ows.exception.OWSExceptionReport;
 import org.deegree.protocol.wms.WMSConstants.WMSRequestType;
-import org.deegree.protocol.wms.ops.GetMap;
 import org.deegree.protocol.wms.client.WMSClient;
+import org.deegree.protocol.wms.ops.GetMap;
 import org.slf4j.Logger;
 
 /**
@@ -339,7 +342,16 @@ public class WMSReader implements RasterReader {
             Envelope env = this.geoRef.getEnvelope( new RasterRect( 1, 1, 2, 2 ), null );
             GetMap gm = new GetMap( layers, maxWidth < 0 ? 1 : maxWidth, maxHeight < 0 ? 1 : maxHeight, env, crs,
                                     format, transparent );
-            Pair<BufferedImage, String> imageResponse = this.client.getMap( gm, null, timeout, true );
+            Pair<BufferedImage, String> imageResponse;
+            try {
+                imageResponse = this.client.getMap( gm, null, timeout, true );
+            } catch ( OWSExceptionReport e1 ) {
+                // TODO improve exception handling
+                throw new IOException( e1 );
+            } catch ( XMLStreamException e1 ) {
+                // TODO improve exception handling
+                throw new IOException( e1 );
+            }
             if ( imageResponse.first != null ) {
                 BufferedImage img = imageResponse.first;
                 try {
@@ -479,7 +491,16 @@ public class WMSReader implements RasterReader {
                             throws IOException {
         Envelope env = this.geoRef.getEnvelope( rect, null );
         GetMap gm = new GetMap( layers, rect.width, rect.height, env, crs, format, transparent );
-        Pair<BufferedImage, String> imageResponse = this.client.getMap( gm, null, timeout, true );
+        Pair<BufferedImage, String> imageResponse;
+        try {
+            imageResponse = this.client.getMap( gm, null, timeout, true );
+        } catch ( OWSExceptionReport e ) {
+            // TODO: improve exception handling
+            throw new IOException( e );
+        } catch ( XMLStreamException e ) {
+            // TODO: improve exception handling
+            throw new IOException( e );
+        }
         BufferResult res = null;
         if ( imageResponse.first != null ) {
             BufferedImage img = imageResponse.first;

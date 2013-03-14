@@ -194,11 +194,11 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
         super( url, new OwsHttpClientImpl( connectionTimeout * 1000, requestTimeout * 1000, user, pass ), lazy );
         this.connectionTimeout = connectionTimeout;
         this.requestTimeout = requestTimeout;
-        
+
         this.httpBasicUser = user;
         this.httpBasicPass = pass;
     }
-    
+
     @Override
     protected void initSpecificCapabilities() {
         getCapaDoc().parseWMSSpecificCapabilities( getOperations() );
@@ -323,9 +323,11 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      * @param hardParameters
      *            parameters to override in the request, may be null
      * @throws IOException
+     * @throws XMLStreamException
+     * @throws OWSExceptionReport
      */
     public Pair<BufferedImage, String> getMap( GetMap getMap, Map<String, String> hardParameters, int timeout )
-                            throws IOException {
+                            throws IOException, OWSExceptionReport, XMLStreamException {
         return getMap( getMap, hardParameters, timeout, false );
     }
 
@@ -333,10 +335,15 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      * @param hardParameters
      *            parameters to override in the request, may be null
      * @throws IOException
+     * @throws XMLStreamException
+     * @throws OWSExceptionReport
+     * @throws
+     * @throws OWSExceptionReport
      */
     public Pair<BufferedImage, String> getMap( GetMap getMap, Map<String, String> hardParameters, int timeout,
                                                boolean errorsInImage )
-                            throws IOException {
+                            throws IOException, OWSExceptionReport, XMLStreamException {
+        initCapabilities();
         if ( VERSION_111.equals( wmsVersion ) ) {
             Worker worker = new Worker( getMap.getLayers(), getMap.getStyles(), getMap.getWidth(), getMap.getHeight(),
                                         getMap.getBoundingBox(), getMap.getCoordinateSystem(), getMap.getFormat(),
@@ -372,7 +379,7 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
      */
     public FeatureCollection doGetFeatureInfo( GetFeatureInfo request, Map<String, String> hardParams )
                             throws IOException, OWSExceptionReport, XMLStreamException {
-
+        initCapabilities();
         Map<String, String> params = buildGetFeatureInfoParamMap( request, hardParams );
         overrideHardParams( params, hardParams );
 
@@ -885,7 +892,9 @@ public class WMSClient extends AbstractOWSClient<WMSCapabilitiesAdapter> {
     }
 
     public InputStream getMap( GetMap getMap )
-                            throws IOException, OWSException {
+                            throws IOException, OWSException, OWSExceptionReport, XMLStreamException {
+        initCapabilities();
+
         Map<String, String> map = new HashMap<String, String>();
         map.put( "request", "GetMap" );
         map.put( "version", wmsVersion.toString() );

@@ -83,8 +83,8 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
     private ServiceProvider provider;
 
     private OperationsMetadata metadata;
-    
-    private boolean isInitialsed = false;
+
+    private boolean isInitialised = false;
 
     private URL capaUrl;
 
@@ -158,7 +158,7 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
             capaBaseUrl = capaUrl;
         }
     }
-    
+
     /**
      * Creates a new {@link AbstractOWSClient} instance from the given capabilities URL.
      * 
@@ -173,8 +173,8 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
      * @throws IOException
      *             if a communication/network problem occured
      */
-    protected AbstractOWSClient( URL capaUrl, OwsHttpClient httpClient , boolean lazy) throws IOException, OWSExceptionReport,
-                            XMLStreamException {
+    protected AbstractOWSClient( URL capaUrl, OwsHttpClient httpClient, boolean lazy ) throws IOException,
+                            OWSExceptionReport, XMLStreamException {
         this.capaUrl = capaUrl;
         if ( capaUrl == null ) {
             throw new NullPointerException( "Capabilities URL must not be null." );
@@ -198,38 +198,38 @@ public abstract class AbstractOWSClient<T extends OWSCapabilitiesAdapter> {
             capaBaseUrl = capaUrl;
         }
     }
-    
+
     protected void initCapabilities()
                             throws IOException, OWSExceptionReport, XMLStreamException {
-        initCapabilities(capaBaseUrl);
+        initCapabilities( capaBaseUrl );
     }
 
-    private void initCapabilities( URL capaUrl )
+    private synchronized void initCapabilities( URL capaUrl )
                             throws IOException, OWSExceptionReport, XMLStreamException {
-if(!isInitialsed){
-        if ( shouldUseGet( capaUrl ) ) {
-            OwsHttpResponse response = httpClient.doGet( capaUrl, null, null );
-            response.assertHttpStatus200();
-            XMLStreamReader responseAsXMLStream = response.getAsXMLStream();
+        if ( !isInitialised ) {
+            isInitialised = true;
+            if ( shouldUseGet( capaUrl ) ) {
+                OwsHttpResponse response = httpClient.doGet( capaUrl, null, null );
+                response.assertHttpStatus200();
+                XMLStreamReader responseAsXMLStream = response.getAsXMLStream();
 
-            try {
-                XMLAdapter xmlAdapter = new XMLAdapter( responseAsXMLStream );
+                try {
+                    XMLAdapter xmlAdapter = new XMLAdapter( responseAsXMLStream );
+                    initCapabilities( xmlAdapter );
+                } finally {
+                    responseAsXMLStream.close();
+                    response.close();
+                }
+            } else {
+                XMLAdapter xmlAdapter = new XMLAdapter( capaUrl );
                 initCapabilities( xmlAdapter );
-            } finally {
-                responseAsXMLStream.close();
-                response.close();
             }
-        } else {
-            XMLAdapter xmlAdapter = new XMLAdapter( capaUrl );
-            initCapabilities( xmlAdapter );
+            initSpecificCapabilities();
         }
-        initSpecificCapabilities();
-        isInitialsed = true;
-}
     }
-    
-    protected void initSpecificCapabilities(){
-        
+
+    protected void initSpecificCapabilities() {
+
     }
 
     private boolean shouldUseGet( URL capaUrl ) {
@@ -360,7 +360,7 @@ if(!isInitialsed){
     }
 
     protected void closeQuietly( OwsHttpResponse response ) {
-        if (response != null) {
+        if ( response != null ) {
             response.close();
         }
     }

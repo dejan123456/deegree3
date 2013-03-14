@@ -123,11 +123,11 @@ public class WMSTextureTileProvider implements TextureTileProvider {
         this.requestTimeout = requestTimeout;
     }
 
-    private static Pair<SimpleRaster, String> getMapAsSimpleRaster( WMSClient client, List<String> layers,
-                                                                    int width, int height, Envelope bbox, ICRS srs,
-                                                                    String format, boolean transparent,
-                                                                    boolean errorsInImage, int timeout )
-                            throws IOException {
+    private static Pair<SimpleRaster, String> getMapAsSimpleRaster( WMSClient client, List<String> layers, int width,
+                                                                    int height, Envelope bbox, ICRS srs, String format,
+                                                                    boolean transparent, boolean errorsInImage,
+                                                                    int timeout )
+                            throws IOException, OWSExceptionReport, XMLStreamException {
 
         GetMap gm = new GetMap( layers, width, height, bbox, srs, format, transparent );
         Pair<BufferedImage, String> imageResponse = client.getMap( gm, null, timeout, errorsInImage );
@@ -162,6 +162,14 @@ public class WMSTextureTileProvider implements TextureTileProvider {
         } catch ( IOException e ) {
             LOG.debug( "Failed: " + e.getMessage(), e );
             // this must never happen, cause the above request uses errorsInImage=true
+            throw new RuntimeException( e.getMessage() );
+        } catch ( OWSExceptionReport e ) {
+            // TODO:improve exception message!
+            LOG.debug( "Failed: " + e.getMessage(), e );
+            throw new RuntimeException( e.getMessage() );
+        } catch ( XMLStreamException e ) {
+            // TODO:improve exception message!
+            LOG.debug( "Failed: " + e.getMessage(), e );
             throw new RuntimeException( e.getMessage() );
         }
         PixelInterleavedRasterData rasterData = (PixelInterleavedRasterData) raster.getRasterData();

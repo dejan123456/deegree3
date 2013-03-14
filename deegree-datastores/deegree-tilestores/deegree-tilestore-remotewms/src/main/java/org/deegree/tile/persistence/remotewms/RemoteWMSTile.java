@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 import org.deegree.commons.ows.exception.OWSException;
@@ -59,6 +60,7 @@ import org.deegree.cs.coordinatesystems.ICRS;
 import org.deegree.feature.FeatureCollection;
 import org.deegree.geometry.Envelope;
 import org.deegree.layer.LayerRef;
+import org.deegree.protocol.ows.exception.OWSExceptionReport;
 import org.deegree.protocol.wms.client.WMSClient;
 import org.deegree.protocol.wms.ops.GetFeatureInfo;
 import org.deegree.protocol.wms.ops.GetMap;
@@ -137,6 +139,10 @@ class RemoteWMSTile implements Tile {
         } catch ( IOException e ) {
             throw new TileIOException( "Error performing GetMap request: " + e.getMessage(), e );
         } catch ( OWSException e ) {
+            throw new TileIOException( "Error performing GetMap request: " + e.getMessage(), e );
+        } catch ( OWSExceptionReport e ) {
+            throw new TileIOException( "Error performing GetMap request: " + e.getMessage(), e );
+        } catch ( XMLStreamException e ) {
             throw new TileIOException( "Error performing GetMap request: " + e.getMessage(), e );
         }
     }
