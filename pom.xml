@@ -25,6 +25,14 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>latlon-releases</id>
+      <url>http://artefacts.lat-lon/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>latlon-snapshots</id>
+      <url>http://artefacts.lat-lon/libs-snapshot-local</url>
+    </snapshotRepository>
   </repositories>
 
   <distributionManagement>
