@@ -243,19 +243,8 @@ public class ISOMetadataStore implements MetadataStore<ISORecord> {
                             throws MetadataStoreException {
         final String operationName = "getRecords";
         LOG.debug( getMessage( "INFO_EXEC", operationName ) );
-        try {
-            QueryService queryService = getReadOnlySqlService();
-            return queryService.execute( query, getConnection() );
-        } catch ( SQLException e ) {
-            LOG.debug( e.getMessage(), e );
-            String msg = getMessage( "ERROR_REQUEST_TYPE", ResultType.results.name(), e.getMessage() );
-            LOG.debug( msg );
-            throw new MetadataStoreException( msg );
-        } finally {
-            // Don't close the ResultSet or PreparedStatement if no error occurs, the ResultSet is needed in the
-            // ISOMetadataResultSet and both will be closed by
-            // org.deegree.metadata.persistence.XMLMetadataResultSet#close().
-        }
+        QueryService queryService = getReadOnlySqlService();
+        return queryService.execute( query, getConnection() );
     }
 
     /**
@@ -272,8 +261,8 @@ public class ISOMetadataStore implements MetadataStore<ISORecord> {
             return queryService.executeCounting( query, getConnection() );
         } catch ( Exception e ) {
             LOG.debug( e.getMessage(), e );
-            throw new MetadataStoreException( 
-                                             getMessage( "ERROR_REQUEST_TYPE", ResultType.results.name(), e.getMessage() ) );
+            throw new MetadataStoreException( getMessage( "ERROR_REQUEST_TYPE", ResultType.results.name(),
+                                                          e.getMessage() ) );
         } finally {
             // Don't close the ResultSet or PreparedStatement if no error occurs, the ResultSet is needed in the
             // ISOMetadataResultSet and both will be closed by
@@ -285,17 +274,9 @@ public class ISOMetadataStore implements MetadataStore<ISORecord> {
     public MetadataResultSet<ISORecord> getRecordById( final List<String> idList, final QName[] recordTypeNames )
                             throws MetadataStoreException {
         LOG.debug( getMessage( "INFO_EXEC", "getRecordsById" ) );
-        try {
-            QueryService qh = getReadOnlySqlService();
-            return qh.executeGetRecordById( idList, getConnection() );
-        } catch ( SQLException e ) {
-            LOG.debug( e.getMessage(), e );
-            throw new MetadataStoreException( getMessage( "ERROR_REQUEST_TYPE", ResultType.results.name(), e.getMessage() ) );
-        } finally {
-            // Don't close the ResultSet or PreparedStatement if no error occurs, the ResultSet is needed in the
-            // ISOMetadataResultSet and both will be closed by
-            // org.deegree.metadata.persistence.XMLMetadataResultSet#close().
-        }
+        QueryService qh = getReadOnlySqlService();
+        return qh.executeGetRecordById( idList, getConnection() );
+
     }
 
     @Override
