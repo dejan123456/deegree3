@@ -29,10 +29,10 @@
       <id>latlon-releases</id>
       <url>http://artefacts.lat-lon/libs-release-local</url>
     </repository>
-    <snapshotRepository>
+    <repository>
       <id>latlon-snapshots</id>
       <url>http://artefacts.lat-lon/libs-snapshot-local</url>
-    </snapshotRepository>
+    </repository>
   </repositories>
 
   <distributionManagement>
